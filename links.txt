@@ -1,0 +1,9 @@
+Dataset:
+http://www.robots.ox.ac.uk/~vgg/data/flowers/102/
+
+Networks:
+https://gist.github.com/jimgoo/0179e52305ca768a601f
+
+papers:
+http://www.robots.ox.ac.uk/~vgg/publications/papers/nilsback08.pdf
+https://www.researchgate.net/publication/230895673_Linear_Distance_Coding_for_Image_Classification
