@@ -7,3 +7,6 @@ https://gist.github.com/jimgoo/0179e52305ca768a601f
 papers:
 http://www.robots.ox.ac.uk/~vgg/publications/papers/nilsback08.pdf
 https://www.researchgate.net/publication/230895673_Linear_Distance_Coding_for_Image_Classification
+
+articles:
+https://medium.freecodecamp.org/how-to-build-the-best-image-classifier-3c72010b3d55
