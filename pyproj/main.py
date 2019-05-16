@@ -9,9 +9,6 @@ from tensorflow.keras import optimizers
 import matplotlib.pyplot as plt
 from skimage.transform import resize
 
-#print("fetching images")
-#image_arr = np.empty(shape=())
-
 
 def padd(image):
     '''
@@ -31,21 +28,35 @@ def padd(image):
         blank_image.paste(image, (position, 0))
     return blank_image
 
-#test_image = Image.open('../images/image_00632.jpg')
-#new_image = reshape(test_image)
-#new_image.show()
-#new_image = new_image.resize((250, 250), Image.ANTIALIAS)
-#new_image.show()
 
+print("fetching images")
 imgnum = 8189
-images = np.empty(shape=(imgnum,256,256,3))
+images = np.empty(shape=(imgnum,128,128,3))
 for i in range(1,imgnum):
     img = Image.open('../images/image_' + str(i).zfill(5) + '.jpg')
-    img = padd(img).resize((256,256), Image.ANTIALIAS)
-    #img.show()
+    img = padd(img).resize((128,128), Image.ANTIALIAS)
     images[i-1] = np.array(img)
     if(i % 100 == 0):
         print(i)
 
-im2 = Image.fromarray(np.uint8((images[4821])))
+#im2 = Image.fromarray(np.uint8((images[47])))
+#im2.show()
+
+print("fetching labels")
+labels = np.genfromtxt('../labels.csv', delimiter=',')
+
+print("starting shuffle")
+def randomize(a, b):
+    # Generate the permutation index array.
+    permutation = np.random.permutation(a.shape[0])
+    # Shuffle the arrays by giving the permutation in the square brackets.
+    shuffled_a = a[permutation]
+    shuffled_b = b[permutation]
+    return shuffled_a, shuffled_b
+
+
+train_in, train_target = randomize(images, labels)
+
+print(train_target)
+im2 = Image.fromarray(np.uint8((train_in[2])))
 im2.show()
