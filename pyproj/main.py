@@ -4,6 +4,7 @@ from matplotlib import cm
 import csv
 import tensorflow as tf
 from tensorflow import keras
+from tensorflow.keras.layers import BatchNormalization, Activation, Conv2D, Add, Dropout, Input, MaxPooling2D, Flatten, Dense
 
 from tensorflow.keras import optimizers
 import matplotlib.pyplot as plt
@@ -66,3 +67,110 @@ print("start one-hot encoding")
 labels = np.zeros((imgnum, 103))
 labels[np.arange(8189), labels_numeric] = 1
 #print(labels[0])
+
+
+
+
+
+
+
+
+
+
+#########RESNET-BLOCK#############
+def BatchActivate(x):
+    x = BatchNormalization()(x)
+    x = Activation('relu')(x)
+    return x
+
+
+def convolution_block(x, filters, size, strides=(1,1), padding='same', activation=True):
+    x = Conv2D(filters, size, strides=strides, padding=padding)(x)
+    if activation:
+        x = BatchActivate(x)
+    return x
+
+
+def residual_block(blockInput, num_filters=16, batch_activate = False):
+    x = BatchActivate(blockInput)
+    x = convolution_block(x, num_filters, (3,3) )
+    x = convolution_block(x, num_filters, (3,3), activation=False)
+    x = Add()([x, blockInput])
+    if batch_activate:
+        x = BatchActivate(x)
+    x = Dropout(DropoutRatioResBlock)(x)
+    return x
+
+DropoutRatio = 0.5 #dropoutRate
+DropoutRatioResBlock = 0.2
+start_neurons = 16
+
+#128 -> 64
+inputs = Input((128,128,3))
+conv1 = Conv2D(start_neurons * 1, (3, 3), activation=None, padding="same")(inputs)
+conv1 = residual_block(conv1,start_neurons * 1)
+conv1 = residual_block(conv1,start_neurons * 1)
+conv1 = residual_block(conv1,start_neurons * 1, True)
+pool1 = MaxPooling2D((2, 2))(conv1)
+pool1 = Dropout(DropoutRatio/2)(pool1)
+
+# 64 -> 32
+conv2 = Conv2D(start_neurons * 2, (3, 3), activation=None, padding="same")(pool1)
+conv2 = residual_block(conv2,start_neurons * 2)
+conv2 = residual_block(conv2,start_neurons * 2)
+conv2 = residual_block(conv2,start_neurons * 2, True)
+pool2 = MaxPooling2D((2, 2))(conv2)
+pool2 = Dropout(DropoutRatio)(pool2)
+
+# 32 -> 16
+conv3 = Conv2D(start_neurons * 4, (3, 3), activation=None, padding="same")(pool2)
+conv3 = residual_block(conv3,start_neurons * 4)
+conv3 = residual_block(conv3,start_neurons * 4, True)
+pool3 = MaxPooling2D((2, 2))(conv3)
+pool3 = Dropout(DropoutRatio)(pool3)
+
+# 16 -> 8
+conv4 = Conv2D(start_neurons * 8, (3, 3), activation=None, padding="same")(pool3)
+conv4 = residual_block(conv4,start_neurons * 8)
+conv4 = residual_block(conv4,start_neurons * 8, True)
+pool4 = MaxPooling2D((2, 2))(conv4)
+pool4 = Dropout(DropoutRatio)(pool4)
+
+flat = Flatten()(pool4)
+dense1 = Dense(103)(flat)
+outputs = Activation('sigmoid')(dense1)
+
+model = tf.keras.Model(inputs=[inputs], outputs=[outputs])
+opt = keras.optimizers.Adam(lr=0.001)
+model.compile(optimizer=opt, loss='binary_crossentropy', metrics=['mse'])
+model.summary()
+
+#nur für GPU-Nutzung, sonst auskommentieren!!!
+config = tf.ConfigProto()
+config.gpu_options.allow_growth = True
+sess = tf.Session(config = config)
+
+
+history = model.fit(train_in, train_target,
+                    validation_split=0.1,
+                    batch_size=16,
+                    epochs=20)
+
+
+# Plot training & validation accuracy values
+f = plt.figure()
+f.add_subplot(1, 2, 1)
+plt.plot(history.history['mse'])
+plt.plot(history.history['val_mse'])
+plt.title('Model MSE')
+plt.ylabel('MSE')
+plt.xlabel('Epoch')
+
+# Plot training & validation loss values
+f.add_subplot(1, 2, 2)
+plt.plot(history.history['loss'])
+plt.plot(history.history['val_loss'])
+plt.title('Model loss')
+plt.ylabel('binary crossentropy')
+plt.xlabel('Epoch')
+plt.show(block=True)
