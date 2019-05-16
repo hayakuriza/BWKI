@@ -13,7 +13,7 @@ from skimage.transform import resize
 #image_arr = np.empty(shape=())
 
 
-def reshape(image):
+def padd(image):
     '''
     Reshapes the non-square image by pasting
     it to the centre of a black canvas of size
@@ -41,7 +41,7 @@ imgnum = 8189
 images = np.empty(shape=(imgnum,256,256,3))
 for i in range(1,imgnum):
     img = Image.open('../images/image_' + str(i).zfill(5) + '.jpg')
-    img = reshape(img).resize((256,256), Image.ANTIALIAS)
+    img = padd(img).resize((256,256), Image.ANTIALIAS)
     #img.show()
     images[i-1] = np.array(img)
     if(i % 100 == 0):
