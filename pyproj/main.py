@@ -9,7 +9,6 @@ from tensorflow.keras import optimizers
 import matplotlib.pyplot as plt
 from skimage.transform import resize
 
-
 def padd(image):
     '''
     Reshapes the non-square image by pasting
@@ -43,7 +42,9 @@ for i in range(1,imgnum):
 #im2.show()
 
 print("fetching labels")
-labels = np.genfromtxt('../labels.csv', delimiter=',')
+labels_numeric = np.genfromtxt('../labels.csv', delimiter=',', dtype=int)
+print(labels_numeric[0])
+
 
 print("starting shuffle")
 def randomize(a, b):
@@ -55,8 +56,13 @@ def randomize(a, b):
     return shuffled_a, shuffled_b
 
 
-train_in, train_target = randomize(images, labels)
+train_in, train_target = randomize(images, labels_numeric)
 
-print(train_target)
-im2 = Image.fromarray(np.uint8((train_in[2])))
-im2.show()
+#print(train_target)
+#im2 = Image.fromarray(np.uint8((train_in[2])))
+#im2.show()
+
+print("start one-hot encoding")
+labels = np.zeros((imgnum, 103))
+labels[np.arange(8189), labels_numeric] = 1
+#print(labels[0])
