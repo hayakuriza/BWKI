@@ -1,5 +1,6 @@
 from PIL import Image
 import numpy as np
+from matplotlib import cm
 import csv
 import tensorflow as tf
 from tensorflow import keras
@@ -30,8 +31,21 @@ def reshape(image):
         blank_image.paste(image, (position, 0))
     return blank_image
 
-test_image = Image.open('../images/image_00632.jpg')
-new_image = reshape(test_image)
-new_image.show()
-new_image = new_image.resize((250, 250), Image.ANTIALIAS)
-new_image.show()
+#test_image = Image.open('../images/image_00632.jpg')
+#new_image = reshape(test_image)
+#new_image.show()
+#new_image = new_image.resize((250, 250), Image.ANTIALIAS)
+#new_image.show()
+
+imgnum = 8189
+images = np.empty(shape=(imgnum,256,256,3))
+for i in range(1,imgnum):
+    img = Image.open('../images/image_' + str(i).zfill(5) + '.jpg')
+    img = reshape(img).resize((256,256), Image.ANTIALIAS)
+    #img.show()
+    images[i-1] = np.array(img)
+    if(i % 100 == 0):
+        print(i)
+
+im2 = Image.fromarray(np.uint8((images[4821])))
+im2.show()
