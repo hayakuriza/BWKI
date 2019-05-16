@@ -30,6 +30,8 @@ def reshape(image):
         blank_image.paste(image, (position, 0))
     return blank_image
 
-test_image = Image.open('../images/image_00600.jpg')
+test_image = Image.open('../images/image_00632.jpg')
 new_image = reshape(test_image)
+new_image.show()
+new_image = new_image.resize((250, 250), Image.ANTIALIAS)
 new_image.show()
