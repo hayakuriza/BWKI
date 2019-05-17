@@ -141,9 +141,9 @@ dense1 = Dense(103)(flat)
 outputs = Activation('sigmoid')(dense1)
 
 model = tf.keras.Model(inputs=[inputs], outputs=[outputs])
-opt = keras.optimizers.SGD(lr=0.01,momentum=0.7)
-#opt = keras.optimizers.Adam(lr=0.0001)
-model.compile(optimizer=opt, loss='binary_crossentropy', metrics=['categorical_accuracy'])
+#opt = keras.optimizers.SGD(lr=0.01,momentum=0.7)
+opt = keras.optimizers.Adam(lr=0.001)
+model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['categorical_accuracy'])
 model.summary()
 
 #nur für GPU-Nutzung, sonst auskommentieren!!!
@@ -154,17 +154,18 @@ sess = tf.Session(config = config)
 
 history = model.fit(train_in, labels,
                     validation_split=0.1,
-                    batch_size=25,
-                    epochs=5)
+                    batch_size=20,
+                    epochs=5,
+                    shuffle=True)
 
 
 # Plot training & validation accuracy values
 f = plt.figure()
 f.add_subplot(1, 2, 1)
-plt.plot(history.history['mse'])
-plt.plot(history.history['val_mse'])
-plt.title('Model MSE')
-plt.ylabel('MSE')
+plt.plot(history.history['categorical_accuracy'])
+plt.plot(history.history['val_categorical_accuracy'])
+plt.title('Model accuracy')
+plt.ylabel('categorical_accuracy')
 plt.xlabel('Epoch')
 
 # Plot training & validation loss values
@@ -172,6 +173,6 @@ f.add_subplot(1, 2, 2)
 plt.plot(history.history['loss'])
 plt.plot(history.history['val_loss'])
 plt.title('Model loss')
-plt.ylabel('binary crossentropy')
+plt.ylabel('categorical_crossentropy')
 plt.xlabel('Epoch')
 plt.show(block=True)
