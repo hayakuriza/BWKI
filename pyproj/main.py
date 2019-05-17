@@ -107,7 +107,7 @@ start_neurons = 16
 
 #128 -> 64
 inputs = Input((128,128,3))
-conv1 = Conv2D(start_neurons * 1, (3, 3), activation=None, padding="same")(inputs)
+conv1 = Conv2D(start_neurons * 1, (7, 7), activation=None, padding="same")(inputs)
 conv1 = residual_block(conv1,start_neurons * 1)
 conv1 = residual_block(conv1,start_neurons * 1)
 conv1 = residual_block(conv1,start_neurons * 1, True)
@@ -137,7 +137,8 @@ pool4 = MaxPooling2D((2, 2))(conv4)
 pool4 = Dropout(DropoutRatio)(pool4)
 
 flat = Flatten()(pool4)
-dense1 = Dense(103)(flat)
+dense1 = Dense(1024)(flat)
+dense1 = Dense(103)(dense1)
 outputs = Activation('sigmoid')(dense1)
 
 model = tf.keras.Model(inputs=[inputs], outputs=[outputs])
@@ -152,11 +153,18 @@ config.gpu_options.allow_growth = True
 sess = tf.Session(config = config)
 
 
+
+checkpointer = tf.keras.callbacks.ModelCheckpoint('chkpnt_best.h5', save_best_only=True, mode = 'max', monitor='val_categorical_accuracy', verbose=1)
+checkpointer2 = tf.keras.callbacks.ModelCheckpoint('chkpnt_alw.h5', verbose=1)
+lrred = tf.keras.callbacks.ReduceLROnPlateau(monitor='val_categorical_accuracy', factor=0.25, patience=6, verbose=1, mode='max', min_delta=0.0001, min_lr=0.00001)
 history = model.fit(train_in, labels,
                     validation_split=0.1,
                     batch_size=20,
-                    epochs=5,
-                    shuffle=True)
+                    epochs=60,
+                    shuffle=True,
+                    callbacks=[checkpointer,
+                               checkpointer2,
+                               lrred])
 
 
 # Plot training & validation accuracy values
