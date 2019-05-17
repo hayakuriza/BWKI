@@ -65,7 +65,7 @@ train_in, train_target = randomize(images, labels_numeric)
 
 print("start one-hot encoding")
 labels = np.zeros((imgnum, 103))
-labels[np.arange(8189), labels_numeric] = 1
+labels[np.arange(8189), train_target] = 1
 #print(labels[0])
 
 
@@ -141,8 +141,9 @@ dense1 = Dense(103)(flat)
 outputs = Activation('sigmoid')(dense1)
 
 model = tf.keras.Model(inputs=[inputs], outputs=[outputs])
-opt = keras.optimizers.Adam(lr=0.001)
-model.compile(optimizer=opt, loss='binary_crossentropy', metrics=['mse'])
+opt = keras.optimizers.SGD(lr=0.01,momentum=0.7)
+#opt = keras.optimizers.Adam(lr=0.0001)
+model.compile(optimizer=opt, loss='binary_crossentropy', metrics=['categorical_accuracy'])
 model.summary()
 
 #nur für GPU-Nutzung, sonst auskommentieren!!!
@@ -151,10 +152,10 @@ config.gpu_options.allow_growth = True
 sess = tf.Session(config = config)
 
 
-history = model.fit(train_in, train_target,
+history = model.fit(train_in, labels,
                     validation_split=0.1,
-                    batch_size=16,
-                    epochs=20)
+                    batch_size=25,
+                    epochs=5)
 
 
 # Plot training & validation accuracy values
