@@ -28,6 +28,6 @@ TODO / IDEAS:
         -cyclical lr
         -batch growth
         -learning rate warmup (bei scratch train)
-        -cosine decay (?)
+        -cosine lr decay (?)
         -FP16 (?)
 
