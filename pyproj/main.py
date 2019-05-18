@@ -8,6 +8,8 @@ from tensorflow.keras.layers import BatchNormalization, Activation, Conv2D, Add,
 
 from tensorflow.keras import optimizers
 import matplotlib.pyplot as plt
+from tensorflow.keras.applications import VGG16
+from tensorflow.keras.models import Sequential
 from skimage.transform import resize
 
 def padd(image):
@@ -33,10 +35,10 @@ print("fetching images")
 imgnum = 8189
 IMGSIZE = 200
 permutation1 = np.random.permutation(imgnum)
-images = np.empty(shape=(imgnum,IMGSIZE,IMGSIZE,3))
+images = np.empty(shape=(imgnum, IMGSIZE, IMGSIZE, 3))
 for i in range(1,imgnum):
     img = Image.open('../images/image_' + str(i).zfill(5) + '.jpg')
-    img = padd(img).resize((IMGSIZE,IMGSIZE), Image.ANTIALIAS)
+    img = padd(img).resize((IMGSIZE, IMGSIZE), Image.ANTIALIAS)
     images[permutation1[i-1]] = np.array(img)
     if(i % 100 == 0):
         print(i)
