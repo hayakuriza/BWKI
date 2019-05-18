@@ -5,9 +5,6 @@ import csv
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras.layers import BatchNormalization, Activation, Conv2D, Add, Dropout, Input, MaxPooling2D, Flatten, Dense
-from tensorflow.keras.models import Sequential
-
-from tensorflow.keras.applications.vgg16 import VGG16
 
 from tensorflow.keras import optimizers
 import matplotlib.pyplot as plt
@@ -32,7 +29,6 @@ def padd(image):
     return blank_image
 
 
-
 print("fetching images")
 imgnum = 8189
 IMGSIZE = 200
@@ -45,8 +41,6 @@ for i in range(1,imgnum):
     if(i % 100 == 0):
         print(i)
 
-
-images /= 255.0
 #im2 = Image.fromarray(np.uint8((images[47])))
 #im2.show()
 
@@ -65,15 +59,15 @@ def randomize(a, b):
     return shuffled_a, shuffled_b
 
 
-#train_in, train_target = randomize(images, labels_numeric)
+train_in, train_target = randomize(images, labels_numeric)
 
-#print(labels_numeric)
-#im2 = Image.fromarray(np.uint8((images[2])))
+#print(train_target)
+#im2 = Image.fromarray(np.uint8((train_in[2])))
 #im2.show()
 
 print("start one-hot encoding")
 labels = np.zeros((imgnum, 103))
-labels[permutation1, labels_numeric] = 1
+labels[np.arange(8189), train_target] = 1
 #print(labels[0])
 
 
@@ -142,17 +136,18 @@ conv4 = Conv2D(start_neurons * 8, (3, 3), activation=None, padding="same")(pool3
 conv4 = residual_block(conv4,start_neurons * 8)
 conv4 = residual_block(conv4,start_neurons * 8, True)
 pool4 = MaxPooling2D((2, 2))(conv4)
-pool4 = Dropout(DropoutRatio/2)(pool4)
+pool4 = Dropout(DropoutRatio)(pool4)
 
 flat = Flatten()(pool4)
-#dense1 = Dense(1024)(flat)
-dense1 = Dense(103)(flat)
+dense1 = Dense(1024)(flat)
+dense1 = Dense(103)(dense1)
 outputs = Activation('sigmoid')(dense1)
 
 model = tf.keras.Model(inputs=[inputs], outputs=[outputs])
 #opt = keras.optimizers.SGD(lr=0.01,momentum=0.7)
 opt = keras.optimizers.Adam(lr=0.001)
-
+model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['categorical_accuracy'])
+model.summary()
 
 
 
@@ -191,7 +186,7 @@ base.trainable=False
 model3.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['categorical_accuracy'])
 model3.summary()
 
-#nur fuer GPU-Nutzung, sonst auskommentieren!!!
+#nur für GPU-Nutzung, sonst auskommentieren!!!
 config = tf.ConfigProto()
 config.gpu_options.allow_growth = True
 sess = tf.Session(config = config)
@@ -201,10 +196,10 @@ sess = tf.Session(config = config)
 checkpointer = tf.keras.callbacks.ModelCheckpoint('chkpnt_best.h5', save_best_only=True, mode = 'max', monitor='val_categorical_accuracy', verbose=1)
 checkpointer2 = tf.keras.callbacks.ModelCheckpoint('chkpnt_alw.h5', verbose=1)
 lrred = tf.keras.callbacks.ReduceLROnPlateau(monitor='val_categorical_accuracy', factor=0.25, patience=6, verbose=1, mode='max', min_delta=0.0001, min_lr=0.00001)
-history = model3.fit(images, labels,
-                    validation_split=0.2,
-                    batch_size=32,
-                    epochs=10,
+history = model.fit(train_in, labels,
+                    validation_split=0.1,
+                    batch_size=20,
+                    epochs=60,
                     shuffle=True,
                     callbacks=[checkpointer,
                                checkpointer2,
@@ -214,19 +209,17 @@ history = model3.fit(images, labels,
 # Plot training & validation accuracy values
 f = plt.figure()
 f.add_subplot(1, 2, 1)
-plt.plot(history.history['categorical_accuracy'], label='acc')
-plt.plot(history.history['val_categorical_accuracy'], label='val_acc')
+plt.plot(history.history['categorical_accuracy'])
+plt.plot(history.history['val_categorical_accuracy'])
 plt.title('Model accuracy')
-plt.legend(loc='upper left')
 plt.ylabel('categorical_accuracy')
 plt.xlabel('Epoch')
 
 # Plot training & validation loss values
 f.add_subplot(1, 2, 2)
-plt.plot(history.history['loss'], label='loss')
-plt.plot(history.history['val_loss'], label='val_loss')
+plt.plot(history.history['loss'])
+plt.plot(history.history['val_loss'])
 plt.title('Model loss')
-plt.legend(loc='upper left')
 plt.ylabel('categorical_crossentropy')
 plt.xlabel('Epoch')
 plt.show(block=True)
