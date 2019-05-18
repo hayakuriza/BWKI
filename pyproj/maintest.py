@@ -158,17 +158,17 @@ sess = tf.Session(config = config)
 
 
 
-#checkpointer = keras.callbacks.ModelCheckpoint('chkpnt_best.h5', save_best_only=True, mode = 'max', monitor='val_categorical_accuracy', verbose=1)
-#checkpointer2 = keras.callbacks.ModelCheckpoint('chkpnt_alw.h5', verbose=1)
-#lrred = keras.callbacks.ReduceLROnPlateau(monitor='val_categorical_accuracy', factor=0.25, patience=6, verbose=1, mode='max', min_delta=0.0001, min_lr=0.00001)
+checkpointer = keras.callbacks.ModelCheckpoint('chkpnt_best.h5', save_best_only=True, mode = 'max', monitor='val_categorical_accuracy', verbose=1)
+checkpointer2 = keras.callbacks.ModelCheckpoint('chkpnt_alw.h5', verbose=1)
+lrred = keras.callbacks.ReduceLROnPlateau(monitor='val_categorical_accuracy', factor=0.25, patience=6, verbose=1, mode='max', min_delta=0.0001, min_lr=0.00001)
 history = model.fit(train_in, labels,
                     validation_split=0.1,
                     batch_size=20,
                     epochs=60,
-                    shuffle=True)
-                    #callbacks=[checkpointer,
-                    #           checkpointer2,
-                    #           lrred])
+                    shuffle=True,
+                    callbacks=[checkpointer,
+                               checkpointer2,
+                               lrred])
 
 
 # Plot training & validation accuracy values
