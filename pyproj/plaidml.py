@@ -4,7 +4,6 @@ import os
 from matplotlib import cm
 import csv
 import tensorflow as tf
-import plaidml
 import plaidml.keras
 plaidml.keras.install_backend()
 os.environ["KERAS_BACKEND"] = "plaidml.keras.backend"
