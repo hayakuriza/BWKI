@@ -10,6 +10,7 @@ os.environ["KERAS_BACKEND"] = "plaidml.keras.backend"
 import keras
 
 from keras.layers import BatchNormalization, Activation, Conv2D, Add, Dropout, Input, MaxPooling2D, Flatten, Dense
+from keras.models import Sequential
 from keras import optimizers
 import matplotlib.pyplot as plt
 from skimage.transform import resize
@@ -35,10 +36,10 @@ def padd(image):
 
 print("fetching images")
 imgnum = 8189
-images = np.empty(shape=(imgnum,128,128,3))
+images = np.empty(shape=(imgnum,256,256,3))
 for i in range(1,imgnum):
     img = Image.open('../images/image_' + str(i).zfill(5) + '.jpg')
-    img = padd(img).resize((128,128), Image.ANTIALIAS)
+    img = padd(img).resize((256,256), Image.ANTIALIAS)
     images[i-1] = np.array(img)
     if(i % 100 == 0):
         print(i)
@@ -110,7 +111,7 @@ DropoutRatioResBlock = 0.2
 start_neurons = 16
 
 #128 -> 64
-inputs = Input((128,128,3))
+inputs = Input((256,256,3))
 conv1 = Conv2D(start_neurons * 1, (7, 7), activation=None, padding="same")(inputs)
 conv1 = residual_block(conv1,start_neurons * 1)
 conv1 = residual_block(conv1,start_neurons * 1)
@@ -145,7 +146,7 @@ dense1 = Dense(1024)(flat)
 dense1 = Dense(103)(dense1)
 outputs = Activation('sigmoid')(dense1)
 
-model = keras.Model(inputs=[inputs], outputs=[outputs])
+model = tf.keras.Model(inputs=[inputs], outputs=[outputs])
 #opt = keras.optimizers.SGD(lr=0.01,momentum=0.7)
 opt = keras.optimizers.Adam(lr=0.001)
 model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['categorical_accuracy'])
@@ -158,9 +159,9 @@ sess = tf.Session(config = config)
 
 
 
-checkpointer = keras.callbacks.ModelCheckpoint('chkpnt_best.h5', save_best_only=True, mode = 'max', monitor='val_categorical_accuracy', verbose=1)
-checkpointer2 = keras.callbacks.ModelCheckpoint('chkpnt_alw.h5', verbose=1)
-lrred = keras.callbacks.ReduceLROnPlateau(monitor='val_categorical_accuracy', factor=0.25, patience=6, verbose=1, mode='max', min_delta=0.0001, min_lr=0.00001)
+checkpointer = tf.keras.callbacks.ModelCheckpoint('chkpnt_best.h5', save_best_only=True, mode = 'max', monitor='val_categorical_accuracy', verbose=1)
+checkpointer2 = tf.keras.callbacks.ModelCheckpoint('chkpnt_alw.h5', verbose=1)
+lrred = tf.keras.callbacks.ReduceLROnPlateau(monitor='val_categorical_accuracy', factor=0.25, patience=6, verbose=1, mode='max', min_delta=0.0001, min_lr=0.00001)
 history = model.fit(train_in, labels,
                     validation_split=0.1,
                     batch_size=20,
