@@ -1,12 +1,16 @@
 from PIL import Image
 import numpy as np
+import os
 from matplotlib import cm
 import csv
 import tensorflow as tf
-from tensorflow import keras
-from tensorflow.keras.layers import BatchNormalization, Activation, Conv2D, Add, Dropout, Input, MaxPooling2D, Flatten, Dense
+import plaidml.keras
+plaidml.keras.install_backend()
+os.environ["KERAS_BACKEND"] = "plaidml.keras.backend"
+import keras
 
-from tensorflow.keras import optimizers
+from keras.layers import BatchNormalization, Activation, Conv2D, Add, Dropout, Input, MaxPooling2D, Flatten, Dense
+from keras import optimizers
 import matplotlib.pyplot as plt
 from skimage.transform import resize
 
@@ -141,7 +145,7 @@ dense1 = Dense(1024)(flat)
 dense1 = Dense(103)(dense1)
 outputs = Activation('sigmoid')(dense1)
 
-model = tf.keras.Model(inputs=[inputs], outputs=[outputs])
+model = keras.Model(inputs=[inputs], outputs=[outputs])
 #opt = keras.optimizers.SGD(lr=0.01,momentum=0.7)
 opt = keras.optimizers.Adam(lr=0.001)
 model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['categorical_accuracy'])
@@ -154,9 +158,9 @@ sess = tf.Session(config = config)
 
 
 
-checkpointer = tf.keras.callbacks.ModelCheckpoint('chkpnt_best.h5', save_best_only=True, mode = 'max', monitor='val_categorical_accuracy', verbose=1)
-checkpointer2 = tf.keras.callbacks.ModelCheckpoint('chkpnt_alw.h5', verbose=1)
-lrred = tf.keras.callbacks.ReduceLROnPlateau(monitor='val_categorical_accuracy', factor=0.25, patience=6, verbose=1, mode='max', min_delta=0.0001, min_lr=0.00001)
+checkpointer = keras.callbacks.ModelCheckpoint('chkpnt_best.h5', save_best_only=True, mode = 'max', monitor='val_categorical_accuracy', verbose=1)
+checkpointer2 = keras.callbacks.ModelCheckpoint('chkpnt_alw.h5', verbose=1)
+lrred = keras.callbacks.ReduceLROnPlateau(monitor='val_categorical_accuracy', factor=0.25, patience=6, verbose=1, mode='max', min_delta=0.0001, min_lr=0.00001)
 history = model.fit(train_in, labels,
                     validation_split=0.1,
                     batch_size=20,
