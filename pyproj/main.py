@@ -9,6 +9,7 @@ from tensorflow.keras.layers import BatchNormalization, Activation, Conv2D, Add,
 from tensorflow.keras import optimizers
 import matplotlib.pyplot as plt
 from tensorflow.keras.applications import VGG16
+from tensorflow.keras.applications import Xception
 from tensorflow.keras.models import Sequential
 from skimage.transform import resize
 
@@ -176,13 +177,13 @@ model2.add(Dense(103, activation="softmax"))
 
 base=VGG16(include_top=False, weights='imagenet',input_shape=(IMGSIZE,IMGSIZE,3), pooling='avg')
 
+#base=Xception(include_top=False, weights='imagenet', input_shape=(IMGSIZE, IMGSIZE, 3), pooling='avg')
 model3 = Sequential()
 model3.add(base)
 model3.add(Dense(1024, activation='relu'))
 model3.add(Dense(103, activation='softmax'))
 
 base.trainable=False
-
 
 
 model3.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['categorical_accuracy'])
@@ -201,7 +202,7 @@ lrred = tf.keras.callbacks.ReduceLROnPlateau(monitor='val_categorical_accuracy',
 history = model.fit(train_in, labels,
                     validation_split=0.1,
                     batch_size=20,
-                    epochs=60,
+                    epochs=10,
                     shuffle=True,
                     callbacks=[checkpointer,
                                checkpointer2,
