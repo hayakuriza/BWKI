@@ -35,11 +35,12 @@ def padd(image):
 
 print("fetching images")
 imgnum = 8189
+IMGSIZE = 200
 permutation1 = np.random.permutation(imgnum)
-images = np.empty(shape=(imgnum,128,128,3))
+images = np.empty(shape=(imgnum,IMGSIZE,IMGSIZE,3))
 for i in range(1,imgnum):
     img = Image.open('../images/image_' + str(i).zfill(5) + '.jpg')
-    img = padd(img).resize((128,128), Image.ANTIALIAS)
+    img = padd(img).resize((IMGSIZE,IMGSIZE), Image.ANTIALIAS)
     images[permutation1[i-1]] = np.array(img)
     if(i % 100 == 0):
         print(i)
@@ -54,7 +55,7 @@ labels_numeric = np.genfromtxt('../labels.csv', delimiter=',', dtype=int)
 print(labels_numeric[0])
 
 
-print("starting shuffle")
+#print("starting shuffle")
 def randomize(a, b):
     # Generate the permutation index array.
     permutation = np.random.permutation(a.shape[0])
@@ -113,7 +114,7 @@ DropoutRatioResBlock = 0.2
 start_neurons = 16
 
 #128 -> 64
-inputs = Input((128,128,3))
+inputs = Input((IMGSIZE,IMGSIZE,3))
 conv1 = Conv2D(start_neurons * 1, (7, 7), activation=None, padding="same")(inputs)
 conv1 = residual_block(conv1,start_neurons * 1)
 conv1 = residual_block(conv1,start_neurons * 1)
@@ -156,7 +157,7 @@ opt = keras.optimizers.Adam(lr=0.001)
 
 
 model2 = Sequential()
-model2.add(Conv2D(filters=32, kernel_size=(5, 5), padding='Same', activation='relu', input_shape=(128, 128, 3)))
+model2.add(Conv2D(filters=32, kernel_size=(5, 5), padding='Same', activation='relu', input_shape=(IMGSIZE, IMGSIZE, 3)))
 model2.add(Conv2D(filters=32, kernel_size=(3, 3), padding='Same', activation='relu'))
 model2.add(MaxPooling2D(pool_size=(2, 2)))
 
@@ -176,7 +177,7 @@ model2.add(Dense(103, activation="softmax"))
 
 
 
-base=VGG16(include_top=False, weights='imagenet',input_shape=(128,128,3), pooling='avg')
+base=VGG16(include_top=False, weights='imagenet',input_shape=(IMGSIZE,IMGSIZE,3), pooling='avg')
 
 model3 = Sequential()
 model3.add(base)
