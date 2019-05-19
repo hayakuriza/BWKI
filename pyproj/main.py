@@ -34,7 +34,7 @@ def padd(image):
 
 print("fetching images")
 imgnum = 8189
-IMGSIZE = 200
+IMGSIZE = 128
 permutation1 = np.random.permutation(imgnum)
 images = np.empty(shape=(imgnum, IMGSIZE, IMGSIZE, 3))
 for i in range(1,imgnum):
@@ -44,25 +44,14 @@ for i in range(1,imgnum):
     if(i % 100 == 0):
         print(i)
 
+print("images /= 255")
+images /= 255
+
 #im2 = Image.fromarray(np.uint8((images[47])))
 #im2.show()
 
 print("fetching labels")
 labels_numeric = np.genfromtxt('../labels.csv', delimiter=',', dtype=int)
-print(labels_numeric[0])
-
-
-#print("starting shuffle")
-def randomize(a, b):
-    # Generate the permutation index array.
-    permutation = np.random.permutation(a.shape[0])
-    # Shuffle the arrays by giving the permutation in the square brackets.
-    shuffled_a = a[permutation]
-    shuffled_b = b[permutation]
-    return shuffled_a, shuffled_b
-
-
-train_in, train_target = randomize(images, labels_numeric)
 
 #print(train_target)
 #im2 = Image.fromarray(np.uint8((train_in[2])))
@@ -70,7 +59,7 @@ train_in, train_target = randomize(images, labels_numeric)
 
 print("start one-hot encoding")
 labels = np.zeros((imgnum, 103))
-labels[np.arange(8189), train_target] = 1
+labels[permutation1, labels_numeric] = 1
 #print(labels[0])
 
 
@@ -142,33 +131,38 @@ pool4 = MaxPooling2D((2, 2))(conv4)
 pool4 = Dropout(DropoutRatio)(pool4)
 
 flat = Flatten()(pool4)
-dense1 = Dense(1024)(flat)
-dense1 = Dense(103)(dense1)
-outputs = Activation('sigmoid')(dense1)
+#dense1 = Dense(1024)(flat)
+dense1 = Dense(103)(flat)
+outputs = Activation('softmax')(dense1)
 
 model = tf.keras.Model(inputs=[inputs], outputs=[outputs])
 #opt = keras.optimizers.SGD(lr=0.01,momentum=0.7)
 opt = keras.optimizers.Adam(lr=0.001)
-model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['categorical_accuracy'])
-model.summary()
+#model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['categorical_accuracy'])
+#model.summary()
 
 
+DRM2 = 0.45
 
 model2 = Sequential()
 model2.add(Conv2D(filters=32, kernel_size=(5, 5), padding='Same', activation='relu', input_shape=(IMGSIZE, IMGSIZE, 3)))
 model2.add(Conv2D(filters=32, kernel_size=(3, 3), padding='Same', activation='relu'))
 model2.add(MaxPooling2D(pool_size=(2, 2)))
+model2.add(Dropout(DRM2))
 
 model2.add(Conv2D(filters=64, kernel_size=(3, 3), padding='Same', activation='relu'))
 model2.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
+model2.add(Dropout(DRM2))
 
 model2.add(Conv2D(filters=96, kernel_size=(3, 3), padding='Same', activation='relu'))
 model2.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
+model2.add(Dropout(DRM2))
 
 model2.add(Conv2D(filters=96, kernel_size=(3, 3), padding='Same', activation='relu'))
 model2.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
 
 model2.add(Flatten())
+model2.add(Dropout(DRM2))
 model2.add(Dense(512))
 model2.add(Activation('relu'))
 model2.add(Dense(103, activation="softmax"))
@@ -186,10 +180,10 @@ model3.add(Dense(103, activation='softmax'))
 base.trainable=False
 
 
-model3.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['categorical_accuracy'])
-model3.summary()
+model2.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['categorical_accuracy'])
+model2.summary()
 
-#nur für GPU-Nutzung, sonst auskommentieren!!!
+#nur fuer GPU-Nutzung, sonst auskommentieren!!!
 config = tf.ConfigProto()
 config.gpu_options.allow_growth = True
 sess = tf.Session(config = config)
@@ -199,8 +193,8 @@ sess = tf.Session(config = config)
 checkpointer = tf.keras.callbacks.ModelCheckpoint('chkpnt_best.h5', save_best_only=True, mode = 'max', monitor='val_categorical_accuracy', verbose=1)
 checkpointer2 = tf.keras.callbacks.ModelCheckpoint('chkpnt_alw.h5', verbose=1)
 lrred = tf.keras.callbacks.ReduceLROnPlateau(monitor='val_categorical_accuracy', factor=0.25, patience=6, verbose=1, mode='max', min_delta=0.0001, min_lr=0.00001)
-history = model.fit(train_in, labels,
-                    validation_split=0.1,
+history = model2.fit(images, labels,
+                    validation_split=0.2,
                     batch_size=20,
                     epochs=10,
                     shuffle=True,
@@ -212,17 +206,20 @@ history = model.fit(train_in, labels,
 # Plot training & validation accuracy values
 f = plt.figure()
 f.add_subplot(1, 2, 1)
-plt.plot(history.history['categorical_accuracy'])
-plt.plot(history.history['val_categorical_accuracy'])
+plt.plot(history.history['categorical_accuracy'], label='acc')
+plt.plot(history.history['val_categorical_accuracy'], label='val_acc')
 plt.title('Model accuracy')
+plt.legend(loc='upper left')
 plt.ylabel('categorical_accuracy')
 plt.xlabel('Epoch')
 
+
 # Plot training & validation loss values
 f.add_subplot(1, 2, 2)
-plt.plot(history.history['loss'])
-plt.plot(history.history['val_loss'])
+plt.plot(history.history['loss'], label='loss')
+plt.plot(history.history['val_loss'], label='val_loss')
 plt.title('Model loss')
+plt.legend(loc='upper left')
 plt.ylabel('categorical_crossentropy')
 plt.xlabel('Epoch')
 plt.show(block=True)
