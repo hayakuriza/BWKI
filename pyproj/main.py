@@ -8,7 +8,7 @@ from tensorflow.keras.layers import BatchNormalization, Activation, Conv2D, Add,
 
 from tensorflow.keras import optimizers
 import matplotlib.pyplot as plt
-from tensorflow.keras.applications import VGG16
+from tensorflow.keras.applications import ResNet50
 from tensorflow.keras.applications import Xception
 from tensorflow.keras.models import Sequential
 from skimage.transform import resize
@@ -34,7 +34,7 @@ def padd(image):
 
 print("fetching images")
 imgnum = 8189
-IMGSIZE = 128
+IMGSIZE = 200
 permutation1 = np.random.permutation(imgnum)
 images = np.empty(shape=(imgnum, IMGSIZE, IMGSIZE, 3))
 for i in range(1,imgnum):
@@ -142,7 +142,7 @@ opt = keras.optimizers.Adam(lr=0.001)
 #model.summary()
 
 
-DRM2 = 0.45
+DRM2 = 0.5
 
 model2 = Sequential()
 model2.add(Conv2D(filters=32, kernel_size=(5, 5), padding='Same', activation='relu', input_shape=(IMGSIZE, IMGSIZE, 3)))
@@ -169,12 +169,13 @@ model2.add(Dense(103, activation="softmax"))
 
 
 
-base=VGG16(include_top=False, weights='imagenet',input_shape=(IMGSIZE,IMGSIZE,3), pooling='avg')
+#base=VGG16(include_top=False, weights='imagenet',input_shape=(IMGSIZE,IMGSIZE,3), pooling='avg')
 
-#base=Xception(include_top=False, weights='imagenet', input_shape=(IMGSIZE, IMGSIZE, 3), pooling='avg')
+base= ResNet50(include_top=False, weights='imagenet', input_shape=(IMGSIZE, IMGSIZE, 3), pooling='avg')
 model3 = Sequential()
 model3.add(base)
-model3.add(Dense(1024, activation='relu'))
+model3.add(Dropout(0.25))
+#model3.add(Dense(1024, activation='relu'))
 model3.add(Dense(103, activation='softmax'))
 
 base.trainable=False
