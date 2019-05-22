@@ -27,16 +27,16 @@ train_datagen = ImageDataGenerator(
     #preprocessing_function=keras.applications.resnet50.preprocess_input,
     rescale=1./255,
     #shear_range=0.2,
-    #zoom_range=0.2,
+    zoom_range=0.2,
     #rotation_range=360,
     #width_shift_range=0.2,
     #height_shift_range=0.2,
-    #brightness_range=(0.8,1.2),
-    #fill_mode='reflect',
+    brightness_range=(0.9,1.1),
+    fill_mode='reflect',
     horizontal_flip=True,
     #vertical_flip=True,
 
-    validation_split=0.2) # set validation split
+    validation_split=0.1) # set validation split
 
 train_generator = train_datagen.flow_from_directory(
     train_data_dir,
@@ -110,6 +110,8 @@ opt2 = keras.optimizers.Adam(lr=0.001)
 model.compile(optimizer=opt2, loss='categorical_crossentropy', metrics=['categorical_accuracy'])
 model.summary()
 
+for i in range (len(base.layers)):
+    print (i,base.layers[i])
 
 
 
@@ -171,6 +173,47 @@ history = model.fit_generator(
     validation_data = validation_generator,
     validation_steps = validation_generator.samples // batch_size,
     epochs = epochs,
+    callbacks=[checkpointer,
+               checkpointer2,
+               lrred])
+
+# Plot training & validation accuracy values
+g = plt.figure()
+g.add_subplot(1, 2, 1)
+plt.plot(history.history['categorical_accuracy'], label='acc')
+plt.plot(history.history['val_categorical_accuracy'], label='val_acc')
+plt.title('Model accuracy')
+plt.legend(loc='upper left')
+plt.ylabel('categorical_accuracy')
+plt.xlabel('Epoch')
+
+# Plot training & validation loss values
+g.add_subplot(1, 2, 2)
+plt.plot(history.history['loss'], label='loss')
+plt.plot(history.history['val_loss'], label='val_loss')
+plt.title('Model loss')
+plt.legend(loc='upper left')
+plt.ylabel('categorical_crossentropy')
+plt.xlabel('Epoch')
+plt.show(block=True)
+
+
+
+for layer in base.layers[75:]:
+    layer.trainable=True
+for layer in base.layers[0:75]:
+    layer.trainable=False
+opt2 = keras.optimizers.Adam(lr=0.001, decay=0.001)
+
+model.compile(optimizer=opt2, loss='categorical_crossentropy', metrics=['categorical_accuracy'])
+
+history = model.fit_generator(
+    train_generator,
+    steps_per_epoch = train_generator.samples // batch_size,
+    validation_data = validation_generator,
+    validation_steps = validation_generator.samples // batch_size,
+    epochs=20,
+    #epochs = epochs,
     callbacks=[checkpointer,
                checkpointer2,
                lrred])
