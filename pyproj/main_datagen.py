@@ -110,8 +110,8 @@ opt2 = keras.optimizers.Adam(lr=0.001)
 model.compile(optimizer=opt2, loss='categorical_crossentropy', metrics=['categorical_accuracy'])
 model.summary()
 
-for i in range (len(base.layers)):
-    print (i,base.layers[i])
+#for i in range (len(base.layers)):
+#    print (i,base.layers[i])
 
 
 
@@ -128,7 +128,6 @@ history = model.fit_generator(
     callbacks=[checkpointer,
                checkpointer2,
                lrred])
-
 
 # Plot training & validation accuracy values
 f = plt.figure()
