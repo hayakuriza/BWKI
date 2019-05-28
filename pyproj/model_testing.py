@@ -18,7 +18,7 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.models import load_model
 
 IMGSIZE = 224
-modelFile = '0.95n.h5'
+modelFile = '095n.h5'
 imageFile = '../frangipani.jpg'
 
 
@@ -62,3 +62,5 @@ with open("../class_labels_datagen.txt", "r") as ins:
 print("predicted name: ", array[np.argmax(out)])
 
 print("confidence: ", out[np.argmax(out)])
+
+model.save('modelsv1.h5')
