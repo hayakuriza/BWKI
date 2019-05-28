@@ -19,7 +19,7 @@ from tensorflow.keras.models import load_model
 
 IMGSIZE = 224
 modelFile = '0.95n.h5'
-imageFile = '../sunflower.jpg'
+imageFile = '../frangipani.jpg'
 
 
 
